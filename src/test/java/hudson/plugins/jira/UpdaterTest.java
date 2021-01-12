@@ -139,10 +139,11 @@ public class UpdaterTest {
             return null;
         }).when(session).addComment(anyString(), anyString(), anyString(), anyString());
 
-        this.updater = new Updater(build2.getProject().getScm());        
-        
+        this.updater = new Updater(build2.getProject().getScm());
+        JiraSite site = mock(JiraSite.class);
+
         final Set<JiraIssue> ids = new HashSet(Arrays.asList(new JiraIssue("FOOBAR-1", null), new JiraIssue("FOOBAR-2", null)));
-        updater.submitComments(build2, System.out, "http://jenkins", ids, session, false, false, "", "");
+        updater.submitComments(build2, System.out, "http://jenkins", ids, session, false, false, "", "", site);
 
         Assert.assertEquals(2, comments.size());
         assertThat(comments.get(0).getBody(), Matchers.containsString(entry1.getMsg()));
@@ -183,12 +184,13 @@ public class UpdaterTest {
         List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSets = new ArrayList<>();
         changeSets.add(changeLogSet);
         when(build.getChangeSets()).thenReturn(changeSets);
+        JiraSite site = mock(JiraSite.class);
 
         // test:
         Set<JiraIssue> ids = new HashSet(Arrays.asList(new JiraIssue("FOOBAR-4711", "Title")));
         Updater updaterCurrent = new Updater(build.getParent().getScm());
         updaterCurrent.submitComments(build,
-                System.out, "http://jenkins", ids, session, false, false, "", "");
+                System.out, "http://jenkins", ids, session, false, false, "", "", site);
 
         Assert.assertEquals(1, comments.size());
         String comment = comments.get(0);
@@ -202,7 +204,7 @@ public class UpdaterTest {
         ids = new HashSet(Arrays.asList(new JiraIssue("FOOBAR-4711", "Title")));
 
         updaterCurrent.submitComments(build,
-                System.out, "http://jenkins", ids, session, false, false, "", "");
+                System.out, "http://jenkins", ids, session, false, false, "", "", site);
 
         Assert.assertEquals(1, comments.size());
         comment = comments.get(0);
@@ -260,9 +262,10 @@ public class UpdaterTest {
         final String roleVisibility = "";
 
         Updater updaterCurrent = new Updater(build.getParent().getScm());
+        JiraSite site = mock(JiraSite.class);
 
         updaterCurrent.submitComments(
-                build, System.out, "http://jenkins", issues, session, false, false, groupVisibility, roleVisibility
+                build, System.out, "http://jenkins", issues, session, false, false, groupVisibility, roleVisibility, site
         );
 
         // expected issue list
@@ -348,7 +351,7 @@ public class UpdaterTest {
         when(mockAuthor.getId()).thenReturn("jenkins-user");
         when(entry.getAuthor()).thenReturn(mockAuthor);
 
-        String description = updater.createScmChangeEntryDescription(r, entry, false, false);
+        String description = updater.createScmChangeEntryDescription(r, entry, false, false, site);
         System.out.println(description);
         assertThat(description, containsString("2016-01-01 00:00:00"));
         assertThat(description, containsString("jenkins-user"));
@@ -452,7 +455,7 @@ public class UpdaterTest {
         affectedFiles.add(affectedFile3);
         doReturn(affectedFiles).when(entry).getAffectedFiles();
 
-        String description = updater.createScmChangeEntryDescription(r, entry, true, true);
+        String description = updater.createScmChangeEntryDescription(r, entry, true, true, site);
         System.out.println(description);
         assertThat(description,
                 equalTo(" (jenkins-user: rev dsgsvds2re3dsv)\n" + "* (add) hudson/plugins/jira/File1\n" + "* \n"
